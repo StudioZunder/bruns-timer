@@ -40,13 +40,12 @@ body{
   font-size:11px;letter-spacing:.14em;text-transform:uppercase;color:var(--muted)}
 .brand .logo{width:43px;max-width:none;color:var(--ink)}
 svg{width:100%;max-width:300px;height:auto;display:block}
-.wheelbox{display:flex;flex-direction:column;align-items:center;gap:8px;width:100%;
+.sliderbox{display:flex;flex-direction:column;align-items:center;gap:6px;width:100%;
   font-size:11px;letter-spacing:.12em;text-transform:uppercase;color:var(--muted)}
-.wheel{width:100%;max-width:240px;cursor:grab;touch-action:pan-y;user-select:none;-webkit-user-select:none;
-  border-radius:12px;transition:opacity .2s}
-.wheel.dragging{cursor:grabbing}
-.wheel:focus-visible{outline:3px solid var(--dial);outline-offset:3px}
-.wheel[aria-disabled="true"]{opacity:.45;cursor:default}
+.slider{width:100%;max-width:260px;cursor:pointer;touch-action:pan-y;user-select:none;-webkit-user-select:none;
+  border-radius:4px;transition:opacity .2s}
+.slider:focus-visible{outline:3px solid var(--dial);outline-offset:3px}
+.slider[aria-disabled="true"]{opacity:.45;cursor:default}
 .readout{font-size:30px;font-weight:500;font-variant-numeric:tabular-nums;letter-spacing:.04em}
 .state{font-size:11px;letter-spacing:.14em;text-transform:uppercase;color:var(--muted);margin-top:-16px}
 .keys{display:flex;gap:28px;align-items:flex-end}
@@ -100,29 +99,16 @@ button:focus-visible{outline:3px solid var(--dial);outline-offset:3px}
   </svg>
   <div class="readout" id="readout">60:00</div>
   <div class="state" id="state">Bereit</div>
-  <div class="wheelbox">
-    <svg class="wheel" id="wheel" viewBox="0 0 240 54" role="slider" tabindex="0"
+  <div class="sliderbox">
+    <svg class="slider" id="slider" viewBox="0 0 260 52" role="slider" tabindex="0"
       aria-label="Laufzeit einstellen" aria-valuemin="1" aria-valuemax="60" aria-valuenow="60" aria-valuetext="60 Minuten">
-      <defs>
-        <linearGradient id="shade" x1="0" x2="1" y1="0" y2="0">
-          <stop offset="0" stop-color="#000" stop-opacity=".7"/>
-          <stop offset=".28" stop-color="#000" stop-opacity="0"/>
-          <stop offset=".72" stop-color="#000" stop-opacity="0"/>
-          <stop offset="1" stop-color="#000" stop-opacity=".7"/>
-        </linearGradient>
-        <linearGradient id="gloss" x1="0" x2="0" y1="0" y2="1">
-          <stop offset="0" stop-color="#fff" stop-opacity=".12"/>
-          <stop offset=".45" stop-color="#fff" stop-opacity="0"/>
-          <stop offset="1" stop-color="#000" stop-opacity=".25"/>
-        </linearGradient>
-      </defs>
-      <rect x="0" y="8" width="240" height="46" rx="12" fill="var(--body-edge)"/>
-      <rect x="0" y="8" width="240" height="46" rx="12" fill="url(#gloss)" opacity=".5"/>
-      <rect x="8" y="14" width="224" height="34" rx="6" fill="var(--dial)"/>
-      <g id="ridges"></g>
-      <rect x="8" y="14" width="224" height="34" rx="6" fill="url(#gloss)"/>
-      <rect x="8" y="14" width="224" height="34" rx="6" fill="url(#shade)"/>
-      <path d="M113 0H127L120 9Z" fill="var(--orange)"/>
+      <line x1="14" y1="16" x2="246" y2="16" stroke="var(--body-edge)" stroke-width="4" stroke-linecap="round"/>
+      <line id="fill" x1="14" y1="16" x2="246" y2="16" stroke="var(--orange)" stroke-width="4" stroke-linecap="round"/>
+      <g id="scale"></g>
+      <g id="knob">
+        <rect x="-8" y="2" width="16" height="28" rx="3" fill="var(--dial)"/>
+        <line x1="0" y1="8" x2="0" y2="24" stroke="var(--hand)" stroke-width="2"/>
+      </g>
     </svg>
     Zeit einstellen
   </div>
@@ -133,7 +119,7 @@ button:focus-visible{outline:3px solid var(--dial);outline-offset:3px}
 </div>
 
 <script>
-// SCALE: Sekunden auf dem Zifferblatt. UNIT: Sekunden je Raste des Schieberads.
+// SCALE: Sekunden auf dem Zifferblatt. UNIT: Sekunden je Schritt des Schiebereglers.
 let SCALE=3600, UNIT=60, setVal=60; const cx=150, cy=150;
 const ticks=document.getElementById('ticks');
 const ns='http://www.w3.org/2000/svg';
@@ -215,24 +201,24 @@ $('mode').onclick=()=>{
   ariaWheel();ready();
 };
 
-/* Schieberad: eine Walze mit 45 Riffeln, je 8 Grad eine Raste. p ist die Walzenstellung in Rasten. */
-const W=$('wheel'), LO=1, HI=60, STEP=8*Math.PI/180, WC=120, WR=112;
-const ridges=[];
-for(let i=0;i<45;i++){
-  const l=document.createElementNS(ns,'line');
-  l.setAttribute('y1',16);l.setAttribute('y2',46);l.setAttribute('stroke','var(--tick)');
-  l.setAttribute('stroke-linecap','round');$('ridges').appendChild(l);ridges.push(l);
-}
-let p=setVal, v=0, goal=null, drag=null, wheelRaf=0, lastT=0, lastClick=0, wheelLocked=false;
-function renderWheel(){
-  for(let i=0;i<ridges.length;i++){
-    let th=(i+p)*STEP;th=((th+Math.PI)%(2*Math.PI)+2*Math.PI)%(2*Math.PI)-Math.PI;
-    const l=ridges[i], c=Math.cos(th);
-    if(c<0.06){l.setAttribute('visibility','hidden');continue;}
-    const x=WC+WR*Math.sin(th);
-    l.setAttribute('visibility','visible');l.setAttribute('x1',x);l.setAttribute('x2',x);
-    l.setAttribute('stroke-width',0.5+2*c);l.setAttribute('opacity',0.12+0.6*c*c);
+/* Schieberegler: p ist die Stellung als Kommazahl. Beim Ziehen folgt p weich dem Finger, beim Loslassen gleitet p auf die nächste ganze Zahl. */
+const W=$('slider'), LO=1, HI=60, X0=14, X1=246;
+const xOf=val=>X0+(val-LO)/(HI-LO)*(X1-X0);
+for(let m=5;m<=60;m+=5){
+  const x=xOf(m), major=m%10===0, l=document.createElementNS(ns,'line');
+  l.setAttribute('x1',x);l.setAttribute('x2',x);l.setAttribute('y1',33);l.setAttribute('y2',major?39:36);
+  l.setAttribute('stroke','var(--muted)');l.setAttribute('stroke-width',1);$('scale').appendChild(l);
+  if(major){
+    const t=document.createElementNS(ns,'text');
+    t.setAttribute('x',x);t.setAttribute('y',50);t.setAttribute('text-anchor','middle');
+    t.setAttribute('fill','var(--muted)');t.setAttribute('font-size','9');
+    t.setAttribute('font-family','Archivo, Helvetica, Arial, sans-serif');t.textContent=m;$('scale').appendChild(t);
   }
+}
+let p=setVal, goal=setVal, drag=null, wheelRaf=0, lastT=0, lastClick=0, wheelLocked=false;
+function renderWheel(){
+  const x=xOf(p);
+  $('fill').setAttribute('x2',x);$('knob').setAttribute('transform',`translate(${x} 0)`);
 }
 function ariaWheel(){
   W.setAttribute('aria-valuenow',setVal);
@@ -241,10 +227,10 @@ function ariaWheel(){
 function click(){
   const now=performance.now();if(now-lastClick<28)return;lastClick=now;
   if(audio&&audio.state==='running'){
-    const n=Math.floor(audio.sampleRate*0.012), b=audio.createBuffer(1,n,audio.sampleRate), d=b.getChannelData(0);
+    const n=Math.floor(audio.sampleRate*0.01), b=audio.createBuffer(1,n,audio.sampleRate), d=b.getChannelData(0);
     for(let i=0;i<n;i++)d[i]=(Math.random()*2-1)*Math.pow(1-i/n,4);
     const s=audio.createBufferSource(), f=audio.createBiquadFilter(), g=audio.createGain();
-    f.type='bandpass';f.frequency.value=3200;f.Q.value=1.2;g.gain.value=0.35;
+    f.type='bandpass';f.frequency.value=3200;f.Q.value=1.2;g.gain.value=0.25;
     s.buffer=b;s.connect(f);f.connect(g);g.connect(audio.destination);s.start();
   }
   try{navigator.vibrate&&navigator.vibrate(4)}catch(e){}
@@ -258,56 +244,38 @@ function applyP(){
 }
 function wheelLoop(t){
   const dt=lastT?Math.min(2,(t-lastT)/16.67):1;lastT=t;
-  if(!drag){
-    if(p<LO-0.001||p>HI+0.001){
-      // weicher Anschlag: Schwung schnell abbremsen, dann ohne Überschwingen zurückgleiten
-      const tg=p<LO?LO:HI;v*=Math.pow(0.4,dt);p+=v*dt+(tg-p)*(1-Math.pow(0.78,dt));
-      if(Math.abs(v)<0.01)v=0;
-    }else{
-      if(goal===null&&Math.abs(v)>0.08){v*=Math.pow(0.95,dt);}
-      else{const tg=goal!==null?goal:Math.round(p);v+=(tg-p)*0.16*dt;v*=Math.pow(0.6,dt);}
-      p+=v*dt;
-    }
-    const tg=goal!==null?goal:Math.round(p);
-    if(p>=LO&&p<=HI&&Math.abs(v)<0.002&&Math.abs(tg-p)<0.002){
-      p=tg;v=0;goal=null;renderWheel();applyP();wheelRaf=0;lastT=0;return;
-    }
-  }
+  const tg=drag?drag.target:goal;
+  p+=(tg-p)*(1-Math.pow(drag?0.45:0.72,dt));
+  if(!drag&&Math.abs(goal-p)<0.002){p=goal;renderWheel();applyP();wheelRaf=0;lastT=0;return;}
   renderWheel();applyP();
   wheelRaf=requestAnimationFrame(wheelLoop);
 }
 function kick(){if(!wheelRaf){lastT=0;wheelRaf=requestAnimationFrame(wheelLoop);}}
-function pxPerStep(){return WR*STEP*W.getBoundingClientRect().width/240;}
+function valAt(clientX){
+  const r=W.getBoundingClientRect(), x=(clientX-r.left)*260/r.width;
+  return Math.min(HI,Math.max(LO,LO+(x-X0)/(X1-X0)*(HI-LO)));
+}
 function lockWheel(on){wheelLocked=on;W.setAttribute('aria-disabled',String(on));}
 W.addEventListener('pointerdown',e=>{
   if(wheelLocked)return;
-  ensureAudio();try{W.setPointerCapture(e.pointerId)}catch(err){}W.classList.add('dragging');
-  goal=null;v=0;drag={x:e.clientX,p0:p,lx:e.clientX,lt:e.timeStamp};kick();
+  ensureAudio();try{W.setPointerCapture(e.pointerId)}catch(err){}
+  drag={target:valAt(e.clientX)};kick();
 });
-W.addEventListener('pointermove',e=>{
-  if(!drag)return;
-  let raw=drag.p0+(e.clientX-drag.x)/pxPerStep();
-  if(raw>HI)raw=HI+1.2*(1-Math.exp(-(raw-HI)/3));else if(raw<LO)raw=LO-1.2*(1-Math.exp(-(LO-raw)/3));
-  const dtm=Math.max(1,e.timeStamp-drag.lt);
-  v=0.6*v+0.4*((e.clientX-drag.lx)/pxPerStep())/(dtm/16.67);
-  drag.lx=e.clientX;drag.lt=e.timeStamp;p=raw;
-});
-function endDrag(){if(!drag)return;drag=null;W.classList.remove('dragging');
-  v=Math.max(-3,Math.min(3,v));kick();}
+W.addEventListener('pointermove',e=>{if(drag)drag.target=valAt(e.clientX);});
+function endDrag(){if(!drag)return;goal=Math.round(drag.target);drag=null;kick();}
 W.addEventListener('pointerup',endDrag);
 W.addEventListener('pointercancel',endDrag);
 W.addEventListener('wheel',e=>{
   if(wheelLocked)return;
   e.preventDefault();ensureAudio();
   const d=(Math.abs(e.deltaX)>Math.abs(e.deltaY)?e.deltaX:-e.deltaY)*(e.deltaMode===1?16:1);
-  goal=null;v=0;p=Math.min(HI+0.4,Math.max(LO-0.4,p+d/40));kick();
+  goal=Math.min(HI,Math.max(LO,goal+Math.sign(d)*Math.max(1,Math.round(Math.abs(d)/40))));kick();
 },{passive:false});
 W.addEventListener('keydown',e=>{
   if(wheelLocked)return;
   const k={ArrowRight:1,ArrowUp:1,ArrowLeft:-1,ArrowDown:-1,PageUp:5,PageDown:-5}[e.key];
   let g=null;
-  if(k)g=(goal!==null?goal:Math.round(p))+k;
-  else if(e.key==='Home')g=LO;else if(e.key==='End')g=HI;
+  if(k)g=goal+k;else if(e.key==='Home')g=LO;else if(e.key==='End')g=HI;
   if(g===null)return;
   e.preventDefault();ensureAudio();goal=Math.min(HI,Math.max(LO,g));kick();
 });
