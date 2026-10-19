@@ -192,12 +192,17 @@ function beep(){
   });
 }
 let ringTimer=0;
+/* Vibrationsalarm im Takt der drei Töne, wiederholt bis Start oder Reset. */
+function buzz(p){try{navigator.vibrate&&navigator.vibrate(p)}catch(e){}}
+function alarm(){beep();buzz([250,100,250,100,250]);}
 function ring(){
   $('dev').classList.add('ringing');$('state').textContent='Zeit ist um';
-  beep();ringTimer=setInterval(beep,1500);
-  try{navigator.vibrate&&navigator.vibrate([400,200,400])}catch(e){}
+  alarm();ringTimer=setInterval(alarm,1500);
 }
-function stopRing(){clearInterval(ringTimer);$('dev').classList.remove('ringing');}
+function stopRing(){
+  if(ringTimer){clearInterval(ringTimer);ringTimer=0;buzz(0);}
+  $('dev').classList.remove('ringing');
+}
 async function lock(){try{wake=await navigator.wakeLock.request('screen')}catch(e){}}
 function ready(){running=false;cancelAnimationFrame(raf);stopRing();lockWheel(false);
   remaining=setVal*UNIT;draw();$('state').textContent='Bereit';}

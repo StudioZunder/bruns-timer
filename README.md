@@ -10,7 +10,7 @@ Eine einzige HTML-Datei. Keine Abhängigkeiten.
 - Schieberegler: stellt die Laufzeit ein, 1 bis 60 Minuten oder 1 bis 60 Sekunden. Ziehen, Tippen, Mausrad oder Pfeiltasten.
 - Orange Taste: Start und Stopp
 - Graue Taste: Zurücksetzen
-- Signalton und Vibration, wenn die Zeit um ist
+- Signalton und Vibrationsalarm, wenn die Zeit um ist. Beide wiederholen sich bis Start oder Reset.
 - Bildschirm bleibt an, solange der Timer läuft
 
 ## Nutzung
