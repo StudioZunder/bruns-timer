@@ -1,0 +1,172 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="theme-color" content="#d9d6cf">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<title>Bruns Timer 60</title>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Archivo:wght@400;500;600&display=swap">
+<style>
+/* Layout: ein einzelnes Gerät, zentriert, Zifferblatt oben, Tasten unten. Bewusst ein fester Bruns-Look in beiden Themes. */
+:root{
+  --room:#d9d6cf;
+  --body:#e9e7e2;
+  --body-edge:#cfccc5;
+  --dial:#1b1b1a;
+  --tick:#f2f1ee;
+  --hand:#f5c400;
+  --orange:#e8571c;
+  --grey-key:#9b9890;
+  --ink:#2b2a27;
+  --muted:#77746c;
+  --sans:"Archivo","Helvetica Neue",Helvetica,Arial,sans-serif;
+}
+html,body{height:100%}
+body{
+  background:var(--room);color:var(--ink);font-family:var(--sans);
+  display:flex;align-items:center;justify-content:center;
+  padding-left:max(16px,env(safe-area-inset-left,0px));
+  padding-right:max(16px,env(safe-area-inset-right,0px));
+  padding-block:24px;box-sizing:border-box;
+}
+.device{
+  width:min(360px,100%);background:var(--body);border-radius:36px;
+  padding:28px 24px 30px;box-sizing:border-box;
+  box-shadow:inset 0 -3px 0 var(--body-edge),0 18px 40px rgba(40,36,28,.18);
+  display:flex;flex-direction:column;align-items:center;gap:22px;
+}
+.brand{align-self:stretch;display:flex;justify-content:space-between;
+  font-size:11px;letter-spacing:.14em;text-transform:uppercase;color:var(--muted)}
+.brand b{color:var(--ink);font-weight:600;letter-spacing:.2em}
+svg{width:100%;max-width:300px;height:auto;display:block}
+.readout{font-size:30px;font-weight:500;font-variant-numeric:tabular-nums;letter-spacing:.04em}
+.state{font-size:11px;letter-spacing:.14em;text-transform:uppercase;color:var(--muted);margin-top:-16px}
+.keys{display:flex;gap:28px;align-items:flex-end}
+.key{display:flex;flex-direction:column;align-items:center;gap:8px;
+  font-size:11px;letter-spacing:.12em;text-transform:uppercase;color:var(--muted)}
+button{border:0;border-radius:50%;cursor:pointer;
+  box-shadow:inset 0 -4px 0 rgba(0,0,0,.18),0 3px 6px rgba(0,0,0,.15);
+  transition:transform .08s}
+button:active{transform:translateY(2px);box-shadow:inset 0 -2px 0 rgba(0,0,0,.18)}
+button:focus-visible{outline:3px solid var(--dial);outline-offset:3px}
+#start{width:76px;height:76px;background:var(--orange)}
+#reset{width:52px;height:52px;background:var(--grey-key)}
+.device.ringing #start{animation:pulse .6s infinite alternate}
+.switch{display:flex;align-items:center;gap:10px;font-size:11px;letter-spacing:.12em;text-transform:uppercase;color:var(--muted)}
+.switch span.on{color:var(--ink);font-weight:600}
+.slide{position:relative;width:54px;height:24px;border-radius:12px;background:var(--body-edge);
+  box-shadow:inset 0 2px 3px rgba(0,0,0,.18);border:0;cursor:pointer;padding:0}
+.slide::after{content:"";position:absolute;top:3px;left:3px;width:26px;height:18px;border-radius:9px;
+  background:var(--grey-key);box-shadow:0 1px 2px rgba(0,0,0,.25);transition:left .15s}
+.slide[aria-checked="true"]::after{left:25px;background:var(--orange)}
+.slide:focus-visible{outline:3px solid var(--dial);outline-offset:3px}
+@keyframes pulse{to{filter:brightness(1.2)}}
+@media (prefers-reduced-motion:reduce){.device.ringing #start{animation:none}}
+</style>
+</head>
+<body>
+<div class="device" id="dev">
+  <div class="brand"><b>Timer</b><span id="unit">60 min</span></div>
+  <div class="switch">
+    <span id="lblH" class="on">Stunde</span>
+    <button class="slide" id="mode" role="switch" aria-checked="false" aria-label="Zwischen Stunde und Minute wechseln"></button>
+    <span id="lblM">Minute</span>
+  </div>
+  <svg viewBox="0 0 300 300" aria-label="Zifferblatt">
+    <circle cx="150" cy="150" r="146" fill="var(--dial)"/>
+    <path id="sector" fill="var(--orange)" opacity=".85"/>
+    <g id="ticks"></g>
+    <line id="hand" x1="150" y1="150" x2="150" y2="34" stroke="var(--hand)" stroke-width="4" stroke-linecap="round"/>
+    <circle cx="150" cy="150" r="9" fill="var(--hand)"/>
+    <circle cx="150" cy="150" r="3" fill="var(--dial)"/>
+  </svg>
+  <div class="readout" id="readout">60:00</div>
+  <div class="state" id="state">Bereit</div>
+  <div class="keys">
+    <div class="key"><button id="reset" aria-label="Zurücksetzen"></button>Reset</div>
+    <div class="key"><button id="start" aria-label="Start oder Stopp"></button>Start / Stopp</div>
+  </div>
+</div>
+
+<script>
+let TOTAL=3600; const cx=150, cy=150;
+const ticks=document.getElementById('ticks');
+const ns='http://www.w3.org/2000/svg';
+for(let m=0;m<60;m++){
+  const a=m/60*2*Math.PI, major=m%5===0;
+  const r1=major?120:128, r2=136;
+  const l=document.createElementNS(ns,'line');
+  l.setAttribute('x1',cx+r1*Math.sin(a));l.setAttribute('y1',cy-r1*Math.cos(a));
+  l.setAttribute('x2',cx+r2*Math.sin(a));l.setAttribute('y2',cy-r2*Math.cos(a));
+  l.setAttribute('stroke','var(--tick)');l.setAttribute('stroke-width',major?3:1.2);
+  ticks.appendChild(l);
+  if(major){
+    const t=document.createElementNS(ns,'text');
+    t.setAttribute('x',cx+102*Math.sin(a));t.setAttribute('y',cy-102*Math.cos(a)+5);
+    t.setAttribute('text-anchor','middle');t.setAttribute('fill','var(--tick)');
+    t.setAttribute('font-family','Archivo, Helvetica, Arial, sans-serif');
+    t.setAttribute('font-size','14');t.textContent=m;ticks.appendChild(t);
+  }
+}
+let remaining=TOTAL, running=false, endAt=0, raf=0, audio=null, wake=null;
+const $=id=>document.getElementById(id);
+function draw(){
+  const f=remaining/TOTAL, a=f*2*Math.PI, R=140;
+  if(f>=0.9999){$('sector').setAttribute('d',`M${cx} ${cy-R}A${R} ${R} 0 1 1 ${cx-0.01} ${cy-R}Z`);}
+  else if(f<=0){$('sector').setAttribute('d','');}
+  else{
+    const x=cx+R*Math.sin(a), y=cy-R*Math.cos(a);
+    $('sector').setAttribute('d',`M${cx} ${cy}L${cx} ${cy-R}A${R} ${R} 0 ${f>.5?1:0} 1 ${x} ${y}Z`);
+  }
+  $('hand').setAttribute('transform',`rotate(${f*360} ${cx} ${cy})`);
+  const s=Math.ceil(remaining);
+  $('readout').textContent=String(Math.floor(s/60)).padStart(2,'0')+':'+String(s%60).padStart(2,'0');
+}
+function tick(){
+  remaining=Math.max(0,(endAt-Date.now())/1000);
+  draw();
+  if(remaining<=0){running=false;ring();return;}
+  raf=requestAnimationFrame(tick);
+}
+function beep(){
+  if(!audio)return;
+  const t=audio.currentTime;
+  [0,0.35,0.7].forEach(d=>{
+    const o=audio.createOscillator(),g=audio.createGain();
+    o.frequency.value=880;o.connect(g);g.connect(audio.destination);
+    g.gain.setValueAtTime(0.0001,t+d);g.gain.exponentialRampToValueAtTime(0.4,t+d+0.02);
+    g.gain.exponentialRampToValueAtTime(0.0001,t+d+0.25);
+    o.start(t+d);o.stop(t+d+0.3);
+  });
+}
+let ringTimer=0;
+function ring(){
+  $('dev').classList.add('ringing');$('state').textContent='Zeit ist um';
+  beep();ringTimer=setInterval(beep,1500);
+  try{navigator.vibrate&&navigator.vibrate([400,200,400])}catch(e){}
+}
+function stopRing(){clearInterval(ringTimer);$('dev').classList.remove('ringing');}
+async function lock(){try{wake=await navigator.wakeLock.request('screen')}catch(e){}}
+$('start').onclick=()=>{
+  if(!audio){try{audio=new (window.AudioContext||window.webkitAudioContext)()}catch(e){}}
+  if(audio&&audio.state==='suspended')audio.resume();
+  if(remaining<=0){stopRing();remaining=TOTAL;draw();$('state').textContent='Bereit';return;}
+  if(running){running=false;cancelAnimationFrame(raf);$('state').textContent='Pause';
+    try{wake&&wake.release()}catch(e){}}
+  else{running=true;endAt=Date.now()+remaining*1000;$('state').textContent='Läuft';lock();tick();}
+};
+$('reset').onclick=()=>{running=false;cancelAnimationFrame(raf);stopRing();
+  remaining=TOTAL;draw();$('state').textContent='Bereit';};
+$('mode').onclick=()=>{
+  const minute=$('mode').getAttribute('aria-checked')!=='true';
+  $('mode').setAttribute('aria-checked',String(minute));
+  TOTAL=minute?60:3600;
+  $('unit').textContent=minute?'60 s':'60 min';
+  $('lblH').classList.toggle('on',!minute);$('lblM').classList.toggle('on',minute);
+  $('reset').onclick();
+};
+draw();
+</script>
+</body>
+</html>
