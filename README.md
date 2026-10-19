@@ -17,5 +17,7 @@ Eine einzige HTML-Datei. Keine Abhängigkeiten.
 
 `index.html` im Browser öffnen. Oder über GitHub Pages aufrufen.
 Auf dem Telefon: Seite öffnen und „Zum Home-Bildschirm“ wählen.
+Dann startet der Timer randlos wie eine App, auf Android im Vollbild.
+Im Browser schaltet Android beim ersten Antippen auf Vollbild.
 
 Hinweis: Der Ton kommt nur, solange die Seite offen ist.
