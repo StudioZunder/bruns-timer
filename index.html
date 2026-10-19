@@ -36,10 +36,17 @@ body{
   box-shadow:inset 0 -3px 0 var(--body-edge),0 18px 40px rgba(40,36,28,.18);
   display:flex;flex-direction:column;align-items:center;gap:22px;
 }
-.brand{align-self:stretch;display:flex;justify-content:space-between;
+.brand{align-self:stretch;display:flex;justify-content:space-between;align-items:center;
   font-size:11px;letter-spacing:.14em;text-transform:uppercase;color:var(--muted)}
-.brand b{color:var(--ink);font-weight:600;letter-spacing:.2em}
+.brand .logo{width:43px;max-width:none;color:var(--ink)}
 svg{width:100%;max-width:300px;height:auto;display:block}
+.wheelbox{display:flex;flex-direction:column;align-items:center;gap:8px;width:100%;
+  font-size:11px;letter-spacing:.12em;text-transform:uppercase;color:var(--muted)}
+.wheel{width:100%;max-width:240px;cursor:grab;touch-action:pan-y;user-select:none;-webkit-user-select:none;
+  border-radius:12px;transition:opacity .2s}
+.wheel.dragging{cursor:grabbing}
+.wheel:focus-visible{outline:3px solid var(--dial);outline-offset:3px}
+.wheel[aria-disabled="true"]{opacity:.45;cursor:default}
 .readout{font-size:30px;font-weight:500;font-variant-numeric:tabular-nums;letter-spacing:.04em}
 .state{font-size:11px;letter-spacing:.14em;text-transform:uppercase;color:var(--muted);margin-top:-16px}
 .keys{display:flex;gap:28px;align-items:flex-end}
@@ -67,7 +74,17 @@ button:focus-visible{outline:3px solid var(--dial);outline-offset:3px}
 </head>
 <body>
 <div class="device" id="dev">
-  <div class="brand"><b>Timer</b><span id="unit">60 min</span></div>
+  <div class="brand">
+    <svg class="logo" viewBox="0 0 1751 304" role="img" aria-label="STUDIO ZUNDER" fill="currentColor">
+      <g transform="matrix(1,0,0,1,-831.304,-1147.73)">
+        <path transform="matrix(4.16667,0,0,4.16667,1508.39,1313.09)" d="M0,-39.685L27.213,0L27.213,-39.685L0,-39.685Z"/>
+        <path transform="matrix(4.16667,0,0,4.16667,1510.75,1282.08)" d="M0,39.685L27.213,39.685L0,0L0,39.685Z"/>
+        <path transform="matrix(4.16667,0,0,4.16667,1713.9,1147.73)" d="M0,71.582L32.861,71.582C36.8,71.582 41.194,70.931 46.045,69.629C49.593,68.685 52.913,66.789 56.006,63.94C59.098,61.092 61.515,57.561 63.257,53.345C64.998,49.129 65.869,43.197 65.869,35.547C65.869,30.664 65.283,26.042 64.111,21.68C62.939,17.318 61.051,13.493 58.447,10.205C55.843,6.918 52.547,4.394 48.56,2.637C44.572,0.879 39.339,0 32.861,0L0,0L0,71.582ZM27.637,16.211C33.366,16.211 37.467,17.611 39.941,20.41C42.415,23.21 43.652,28.402 43.652,35.986C43.652,41.716 43.098,45.858 41.992,48.413C40.885,50.969 39.355,52.759 37.402,53.784C35.449,54.81 32.161,55.322 27.539,55.322L22.119,55.322L22.119,16.211L27.637,16.211ZM71.441,71.582L131.793,71.582L131.793,55.371L93.609,55.371L93.609,41.26L128.033,41.26L128.033,26.66L93.609,26.66L93.609,15.283L130.719,15.283L130.719,0L71.441,0L71.441,71.582ZM160.217,71.582L160.217,42.529L162.17,42.529C164.188,42.529 165.995,43.083 167.59,44.189C168.762,45.036 170.096,46.875 171.594,49.707L183.417,71.582L208.41,71.582L197.698,50.84C197.178,49.798 196.145,48.315 194.6,46.393C193.054,44.47 191.876,43.216 191.062,42.629C189.859,41.75 187.939,40.871 185.305,39.99C188.594,39.242 191.184,38.298 193.073,37.158C196.036,35.368 198.365,33.032 200.059,30.151C201.753,27.27 202.6,23.845 202.6,19.873C202.6,15.316 201.493,11.45 199.279,8.276C197.065,5.103 194.152,2.93 190.539,1.758C186.926,0.586 181.701,0 174.865,0L138,0L138,71.582L160.217,71.582ZM160.217,14.453L169.934,14.453C173.97,14.453 176.721,15.072 178.186,16.309C179.65,17.546 180.383,19.32 180.383,21.631C180.383,23.193 179.919,24.577 178.991,25.781C178.063,26.986 176.867,27.734 175.402,28.027C172.505,28.679 170.552,29.004 169.543,29.004L160.217,29.004L160.217,14.453Z"/>
+        <path transform="matrix(4.16667,0,0,4.16667,847.375,1387.89)" d="M0,-42.237L35.905,-42.237L-3.857,-0.782L-3.857,14.062L64.063,14.062L64.063,-1.319L22.415,-1.319L62.598,-43.214L62.598,-57.52L0,-57.52L0,-42.237ZM114.605,-13.857C114.605,-9.889 113.523,-6.824 111.358,-4.661C109.193,-2.498 106.207,-1.417 102.398,-1.417C98.557,-1.417 95.554,-2.514 93.39,-4.71C91.224,-6.905 90.143,-9.954 90.143,-13.857L90.143,-57.52L68.072,-57.52L68.072,-14.873C68.072,-11.359 68.756,-7.326 70.123,-2.772C70.969,0.059 72.54,2.808 74.835,5.475C77.13,8.142 79.661,10.2 82.428,11.647C85.194,13.095 88.637,14.062 92.755,14.551C96.872,15.038 100.673,15.283 104.156,15.283C110.178,15.283 115.338,14.485 119.635,12.891C122.727,11.753 125.681,9.777 128.497,6.963C131.312,4.15 133.38,0.864 134.698,-2.894C136.017,-6.65 136.676,-10.644 136.676,-14.873L136.676,-57.52L114.605,-57.52L114.605,-13.857Z"/>
+      </g>
+    </svg>
+    <span id="unit">60 min</span>
+  </div>
   <div class="switch">
     <span id="lblH" class="on">Stunde</span>
     <button class="slide" id="mode" role="switch" aria-checked="false" aria-label="Zwischen Stunde und Minute wechseln"></button>
@@ -83,6 +100,32 @@ button:focus-visible{outline:3px solid var(--dial);outline-offset:3px}
   </svg>
   <div class="readout" id="readout">60:00</div>
   <div class="state" id="state">Bereit</div>
+  <div class="wheelbox">
+    <svg class="wheel" id="wheel" viewBox="0 0 240 54" role="slider" tabindex="0"
+      aria-label="Laufzeit einstellen" aria-valuemin="1" aria-valuemax="60" aria-valuenow="60" aria-valuetext="60 Minuten">
+      <defs>
+        <linearGradient id="shade" x1="0" x2="1" y1="0" y2="0">
+          <stop offset="0" stop-color="#000" stop-opacity=".7"/>
+          <stop offset=".28" stop-color="#000" stop-opacity="0"/>
+          <stop offset=".72" stop-color="#000" stop-opacity="0"/>
+          <stop offset="1" stop-color="#000" stop-opacity=".7"/>
+        </linearGradient>
+        <linearGradient id="gloss" x1="0" x2="0" y1="0" y2="1">
+          <stop offset="0" stop-color="#fff" stop-opacity=".12"/>
+          <stop offset=".45" stop-color="#fff" stop-opacity="0"/>
+          <stop offset="1" stop-color="#000" stop-opacity=".25"/>
+        </linearGradient>
+      </defs>
+      <rect x="0" y="8" width="240" height="46" rx="12" fill="var(--body-edge)"/>
+      <rect x="0" y="8" width="240" height="46" rx="12" fill="url(#gloss)" opacity=".5"/>
+      <rect x="8" y="14" width="224" height="34" rx="6" fill="var(--dial)"/>
+      <g id="ridges"></g>
+      <rect x="8" y="14" width="224" height="34" rx="6" fill="url(#gloss)"/>
+      <rect x="8" y="14" width="224" height="34" rx="6" fill="url(#shade)"/>
+      <path d="M113 0H127L120 9Z" fill="var(--orange)"/>
+    </svg>
+    Zeit einstellen
+  </div>
   <div class="keys">
     <div class="key"><button id="reset" aria-label="Zurücksetzen"></button>Reset</div>
     <div class="key"><button id="start" aria-label="Start oder Stopp"></button>Start / Stopp</div>
@@ -90,7 +133,8 @@ button:focus-visible{outline:3px solid var(--dial);outline-offset:3px}
 </div>
 
 <script>
-let TOTAL=3600; const cx=150, cy=150;
+// SCALE: Sekunden auf dem Zifferblatt. UNIT: Sekunden je Raste des Schieberads.
+let SCALE=3600, UNIT=60, setVal=60; const cx=150, cy=150;
 const ticks=document.getElementById('ticks');
 const ns='http://www.w3.org/2000/svg';
 for(let m=0;m<60;m++){
@@ -109,10 +153,10 @@ for(let m=0;m<60;m++){
     t.setAttribute('font-size','14');t.textContent=m;ticks.appendChild(t);
   }
 }
-let remaining=TOTAL, running=false, endAt=0, raf=0, audio=null, wake=null;
+let remaining=setVal*UNIT, running=false, endAt=0, raf=0, audio=null, wake=null;
 const $=id=>document.getElementById(id);
 function draw(){
-  const f=remaining/TOTAL, a=f*2*Math.PI, R=140;
+  const f=Math.min(1,remaining/SCALE), a=f*2*Math.PI, R=140;
   if(f>=0.9999){$('sector').setAttribute('d',`M${cx} ${cy-R}A${R} ${R} 0 1 1 ${cx-0.01} ${cy-R}Z`);}
   else if(f<=0){$('sector').setAttribute('d','');}
   else{
@@ -126,8 +170,12 @@ function draw(){
 function tick(){
   remaining=Math.max(0,(endAt-Date.now())/1000);
   draw();
-  if(remaining<=0){running=false;ring();return;}
+  if(remaining<=0){running=false;lockWheel(false);ring();return;}
   raf=requestAnimationFrame(tick);
+}
+function ensureAudio(){
+  if(!audio){try{audio=new (window.AudioContext||window.webkitAudioContext)()}catch(e){}}
+  if(audio&&audio.state==='suspended')audio.resume();
 }
 function beep(){
   if(!audio)return;
@@ -148,25 +196,122 @@ function ring(){
 }
 function stopRing(){clearInterval(ringTimer);$('dev').classList.remove('ringing');}
 async function lock(){try{wake=await navigator.wakeLock.request('screen')}catch(e){}}
+function ready(){running=false;cancelAnimationFrame(raf);stopRing();lockWheel(false);
+  remaining=setVal*UNIT;draw();$('state').textContent='Bereit';}
 $('start').onclick=()=>{
-  if(!audio){try{audio=new (window.AudioContext||window.webkitAudioContext)()}catch(e){}}
-  if(audio&&audio.state==='suspended')audio.resume();
-  if(remaining<=0){stopRing();remaining=TOTAL;draw();$('state').textContent='Bereit';return;}
-  if(running){running=false;cancelAnimationFrame(raf);$('state').textContent='Pause';
+  ensureAudio();
+  if(remaining<=0){ready();return;}
+  if(running){running=false;cancelAnimationFrame(raf);lockWheel(false);$('state').textContent='Pause';
     try{wake&&wake.release()}catch(e){}}
-  else{running=true;endAt=Date.now()+remaining*1000;$('state').textContent='Läuft';lock();tick();}
+  else{running=true;lockWheel(true);endAt=Date.now()+remaining*1000;$('state').textContent='Läuft';lock();tick();}
 };
-$('reset').onclick=()=>{running=false;cancelAnimationFrame(raf);stopRing();
-  remaining=TOTAL;draw();$('state').textContent='Bereit';};
+$('reset').onclick=ready;
 $('mode').onclick=()=>{
   const minute=$('mode').getAttribute('aria-checked')!=='true';
   $('mode').setAttribute('aria-checked',String(minute));
-  TOTAL=minute?60:3600;
+  SCALE=minute?60:3600;UNIT=minute?1:60;
   $('unit').textContent=minute?'60 s':'60 min';
   $('lblH').classList.toggle('on',!minute);$('lblM').classList.toggle('on',minute);
-  $('reset').onclick();
+  ariaWheel();ready();
 };
-draw();
+
+/* Schieberad: eine Walze mit 45 Riffeln, je 8 Grad eine Raste. p ist die Walzenstellung in Rasten. */
+const W=$('wheel'), LO=1, HI=60, STEP=8*Math.PI/180, WC=120, WR=112;
+const ridges=[];
+for(let i=0;i<45;i++){
+  const l=document.createElementNS(ns,'line');
+  l.setAttribute('y1',16);l.setAttribute('y2',46);l.setAttribute('stroke','var(--tick)');
+  l.setAttribute('stroke-linecap','round');$('ridges').appendChild(l);ridges.push(l);
+}
+let p=setVal, v=0, goal=null, drag=null, wheelRaf=0, lastT=0, lastClick=0, wheelLocked=false;
+function renderWheel(){
+  for(let i=0;i<ridges.length;i++){
+    let th=(i+p)*STEP;th=((th+Math.PI)%(2*Math.PI)+2*Math.PI)%(2*Math.PI)-Math.PI;
+    const l=ridges[i], c=Math.cos(th);
+    if(c<0.06){l.setAttribute('visibility','hidden');continue;}
+    const x=WC+WR*Math.sin(th);
+    l.setAttribute('visibility','visible');l.setAttribute('x1',x);l.setAttribute('x2',x);
+    l.setAttribute('stroke-width',0.5+2*c);l.setAttribute('opacity',0.12+0.6*c*c);
+  }
+}
+function ariaWheel(){
+  W.setAttribute('aria-valuenow',setVal);
+  W.setAttribute('aria-valuetext',setVal+(UNIT===60?(setVal===1?' Minute':' Minuten'):(setVal===1?' Sekunde':' Sekunden')));
+}
+function click(){
+  const now=performance.now();if(now-lastClick<28)return;lastClick=now;
+  if(audio&&audio.state==='running'){
+    const n=Math.floor(audio.sampleRate*0.012), b=audio.createBuffer(1,n,audio.sampleRate), d=b.getChannelData(0);
+    for(let i=0;i<n;i++)d[i]=(Math.random()*2-1)*Math.pow(1-i/n,4);
+    const s=audio.createBufferSource(), f=audio.createBiquadFilter(), g=audio.createGain();
+    f.type='bandpass';f.frequency.value=3200;f.Q.value=1.2;g.gain.value=0.35;
+    s.buffer=b;s.connect(f);f.connect(g);g.connect(audio.destination);s.start();
+  }
+  try{navigator.vibrate&&navigator.vibrate(4)}catch(e){}
+}
+function applyP(){
+  const val=Math.min(HI,Math.max(LO,Math.round(p)));
+  if(val!==setVal){
+    setVal=val;click();ariaWheel();
+    stopRing();remaining=setVal*UNIT;draw();$('state').textContent='Bereit';
+  }
+}
+function wheelLoop(t){
+  const dt=lastT?Math.min(2,(t-lastT)/16.67):1;lastT=t;
+  if(!drag){
+    if(p<LO-0.001||p>HI+0.001){
+      // weicher Anschlag: Schwung schnell abbremsen, dann ohne Überschwingen zurückgleiten
+      const tg=p<LO?LO:HI;v*=Math.pow(0.4,dt);p+=v*dt+(tg-p)*(1-Math.pow(0.78,dt));
+      if(Math.abs(v)<0.01)v=0;
+    }else{
+      if(goal===null&&Math.abs(v)>0.08){v*=Math.pow(0.95,dt);}
+      else{const tg=goal!==null?goal:Math.round(p);v+=(tg-p)*0.16*dt;v*=Math.pow(0.6,dt);}
+      p+=v*dt;
+    }
+    const tg=goal!==null?goal:Math.round(p);
+    if(p>=LO&&p<=HI&&Math.abs(v)<0.002&&Math.abs(tg-p)<0.002){
+      p=tg;v=0;goal=null;renderWheel();applyP();wheelRaf=0;lastT=0;return;
+    }
+  }
+  renderWheel();applyP();
+  wheelRaf=requestAnimationFrame(wheelLoop);
+}
+function kick(){if(!wheelRaf){lastT=0;wheelRaf=requestAnimationFrame(wheelLoop);}}
+function pxPerStep(){return WR*STEP*W.getBoundingClientRect().width/240;}
+function lockWheel(on){wheelLocked=on;W.setAttribute('aria-disabled',String(on));}
+W.addEventListener('pointerdown',e=>{
+  if(wheelLocked)return;
+  ensureAudio();try{W.setPointerCapture(e.pointerId)}catch(err){}W.classList.add('dragging');
+  goal=null;v=0;drag={x:e.clientX,p0:p,lx:e.clientX,lt:e.timeStamp};kick();
+});
+W.addEventListener('pointermove',e=>{
+  if(!drag)return;
+  let raw=drag.p0+(e.clientX-drag.x)/pxPerStep();
+  if(raw>HI)raw=HI+1.2*(1-Math.exp(-(raw-HI)/3));else if(raw<LO)raw=LO-1.2*(1-Math.exp(-(LO-raw)/3));
+  const dtm=Math.max(1,e.timeStamp-drag.lt);
+  v=0.6*v+0.4*((e.clientX-drag.lx)/pxPerStep())/(dtm/16.67);
+  drag.lx=e.clientX;drag.lt=e.timeStamp;p=raw;
+});
+function endDrag(){if(!drag)return;drag=null;W.classList.remove('dragging');
+  v=Math.max(-3,Math.min(3,v));kick();}
+W.addEventListener('pointerup',endDrag);
+W.addEventListener('pointercancel',endDrag);
+W.addEventListener('wheel',e=>{
+  if(wheelLocked)return;
+  e.preventDefault();ensureAudio();
+  const d=(Math.abs(e.deltaX)>Math.abs(e.deltaY)?e.deltaX:-e.deltaY)*(e.deltaMode===1?16:1);
+  goal=null;v=0;p=Math.min(HI+0.4,Math.max(LO-0.4,p+d/40));kick();
+},{passive:false});
+W.addEventListener('keydown',e=>{
+  if(wheelLocked)return;
+  const k={ArrowRight:1,ArrowUp:1,ArrowLeft:-1,ArrowDown:-1,PageUp:5,PageDown:-5}[e.key];
+  let g=null;
+  if(k)g=(goal!==null?goal:Math.round(p))+k;
+  else if(e.key==='Home')g=LO;else if(e.key==='End')g=HI;
+  if(g===null)return;
+  e.preventDefault();ensureAudio();goal=Math.min(HI,Math.max(LO,g));kick();
+});
+renderWheel();ariaWheel();draw();
 </script>
 </body>
 </html>

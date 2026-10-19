@@ -7,6 +7,7 @@ Eine einzige HTML-Datei. Keine Abhängigkeiten.
 
 - Rundes Zifferblatt mit gelbem Zeiger und oranger Restzeit-Fläche
 - Schiebeschalter: Stunde (60 Minuten) oder Minute (60 Sekunden)
+- Schieberad: stellt die Laufzeit ein, 1 bis 60 Minuten oder 1 bis 60 Sekunden. Ziehen, Wischen, Mausrad oder Pfeiltasten.
 - Orange Taste: Start und Stopp
 - Graue Taste: Zurücksetzen
 - Signalton und Vibration, wenn die Zeit um ist
